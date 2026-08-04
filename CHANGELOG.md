@@ -278,6 +278,10 @@ The discipline of arc-ready is the discipline the eleven-skill suite produced. S
 - Compatible with: claude-code, codex, cursor, windsurf, antigravity, pi, openclaw, any-agentskills-compatible-harness.
 - Artifact paths (`.prd-ready/PRD.md`, `.architecture-ready/ARCH.md`, etc.) are unchanged from the eleven-skill suite. The hannsxpeter/ready-suite-example dogfood verifies cleanly against arc-ready's tier dispatch.
 
+[1.2.0]: https://github.com/hannsxpeter/arc-ready/releases/tag/v1.2.0
+[1.1.0]: https://github.com/hannsxpeter/arc-ready/releases/tag/v1.1.0
+[1.0.2]: https://github.com/hannsxpeter/arc-ready/releases/tag/v1.0.2
+[1.0.1]: https://github.com/hannsxpeter/arc-ready/releases/tag/v1.0.1
 [1.0.0]: https://github.com/hannsxpeter/arc-ready/releases/tag/v1.0.0
 [0.1.6]: https://github.com/hannsxpeter/arc-ready/releases/tag/v0.1.6
 [0.1.5]: https://github.com/hannsxpeter/arc-ready/releases/tag/v0.1.5
