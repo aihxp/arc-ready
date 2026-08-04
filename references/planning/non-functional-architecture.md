@@ -88,13 +88,13 @@ On the B2B SaaS order-placement example:
 
 ### Storage, egress, and cost
 
-A 36,000-second business day at 167 RPS is 6.0M requests; 3% orders = 180,000. Per order, 4 KB relational plus 3 events at 1 KB: 0.7 GB relational and 1.3 GB total per business day, x 260 days = 330 GB logical per year. Index +40% = 460 GB, writer plus two replicas 1.4 TB, backups and 30-day PITR one more copy: **about 2 TB at 12 months.** Confirmation PDFs at 250 KB add 11.7 TB per year, outside the OLTP engine.
+A 36,000-second business day at 167 RPS is 6.0M requests; 3% orders = 180,000. Per order, a 4 KB order row (0.7 GB per business day) plus 3 outbox event rows at 1 KB written in the same transaction (data-architecture.md Section 6): 1.3 GB of relational writes per business day, x 260 days = 330 GB logical per year. Index +40% = 460 GB, writer plus two replicas 1.4 TB, backups and 30-day PITR one more copy: **about 2 TB at 12 months.** The event-bus row in the table below sizes that stream's throughput, not a second copy of its storage. Confirmation PDFs at 250 KB add 11.7 TB per year, outside the OLTP engine.
 
 **Retention is the multiplier estimates omit.** The same 1.3 GB per business day is about 85 GB at 90-day retention (90 calendar days is 65 business days) and 2.3 TB at 7-year audit retention, 27x on identical write traffic: a compliance decision (data-architecture.md Section 5), not a default.
 
 **Egress is metered per GB; ingress is free.** User-facing (167 RPS x 8 KB compressed) 1.0 TB per month at 21.7 business days, PDF downloads 1.0 TB at one download per PDF (assumed, owner product lead; a ratio of 3 triples it), cross-AZ reads (340 read QPS in-window average, one fifth of the 1,700 peak, x 4 KB) 1.1 TB: about 3 TB. **A nightly export re-shipping the full 330 GB order table instead of a delta is 10 TB per month, three times all of them, from a job nobody drew.** Full dump versus change-data-capture is architectural (data-architecture.md Section 6).
 
-**Cost is an output, normalized.** The envelope is **single-digit thousands of dollars per month at list rates, dominated by the database tier.** Across 3.9M orders per month, **a tenth of a cent per order**, orders of magnitude below the gateway fee.
+**Cost is an output, normalized.** Price the envelope line by line at the provider's published rates, which are vendor-published and the fastest-staling input here: 6 instances, 2 TB across all database copies, 12 TB of object storage, 3 TB of egress. At list rates that lands in **single-digit thousands of dollars per month, dominated by the database tier** (derived, and only as good as the rate card behind it; carry the four subtotals into the ARCH.md so a rate change or a resized component propagates). Across 3.9M orders per month, **a tenth of a cent per order**, orders of magnitude below the gateway fee.
 
 ### The horizon rule
 
