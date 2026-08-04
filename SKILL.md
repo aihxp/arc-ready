@@ -4,8 +4,8 @@ description: "Plan, build, ship, and audit software across the full idea-to-laun
 license: MIT
 compatibility: "Works with Agent Skills compatible file-system agents. Chat-only clients can use guidance mode."
 metadata:
-  version: "1.1.0"
-  updated: "2026-07-13"
+  version: "1.2.0"
+  updated: "2026-08-03"
   changelog: "CHANGELOG.md"
   tier: "arc"
   predecessor: "hannsxpeter/ready-suite"

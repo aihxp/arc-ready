@@ -22,7 +22,7 @@ For contributor guidance, see `CONTRIBUTING.md`. For evaluation policy, see `EVA
 - Minor releases (`vX.Y.0`) add non-breaking routing, references, sub-steps, ecosystem guidance, or evaluation coverage.
 - Major releases (`vX.0.0`) break canonical artifact paths or the workflow shape. Coordinate downstream consumers and update `MIGRATION.md` before publication.
 
-The 1.1.0 product-form, domain-composition, evaluation, and pre-publication additions are minor because the canonical artifact contract and Modes A-D remain stable.
+The 1.1.0 product-form, domain-composition, evaluation, and pre-publication additions are minor because the canonical artifact contract and Modes A-D remain stable. The 1.2.0 planning-tier capacity-estimation addition is minor for the same reason: it adds reference content and leaves the artifact contract, the mode set, and the three-chain math-check gate unchanged.
 
 ## Prepare a release candidate
 
@@ -53,7 +53,7 @@ Do not publish a release candidate with a skipped official validator, failing de
 Publication is a maintainer action, separate from release preparation:
 
 ```bash
-VERSION=1.1.0
+VERSION=1.2.0
 git add -A
 git commit -m "v$VERSION: prepare release"
 git push origin HEAD

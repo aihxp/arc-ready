@@ -1,8 +1,8 @@
 # arc-ready
 
 [![lint](https://github.com/hannsxpeter/arc-ready/actions/workflows/lint.yml/badge.svg)](https://github.com/hannsxpeter/arc-ready/actions/workflows/lint.yml)
-[![release](https://img.shields.io/badge/release-v1.1.0-blue)](https://github.com/hannsxpeter/arc-ready/releases/tag/v1.1.0)
-[![version](https://img.shields.io/badge/source-1.1.0-blue)](CHANGELOG.md)
+[![release](https://img.shields.io/badge/release-v1.2.0-blue)](https://github.com/hannsxpeter/arc-ready/releases/tag/v1.2.0)
+[![version](https://img.shields.io/badge/source-1.2.0-blue)](CHANGELOG.md)
 [![agent skills](https://img.shields.io/badge/Agent%20Skills-compatible-2f6fed)](SKILL.md)
 [![hannsxpeter/pillars](https://img.shields.io/badge/hannsxpeter%2Fpillars-standard-0f766e)](https://github.com/hannsxpeter/pillars)
 [![smoke](https://img.shields.io/badge/smoke-12%2F12-brightgreen)](scripts/dogfood-smoke.sh)
@@ -169,7 +169,7 @@ The intended 1.0 contract is stable and intentionally small:
 
 ## Status
 
-The current v1.1.0 release adds explicit product forms, composable domain guidance, progressive disclosure, deterministic and live-harness evaluations, official Agent Skills validation, current OWASP Top 10:2025 routing, and a serialized public activation gate. The 1.0 artifact contract remains stable. Every named failure mode from the eleven source skills remains available under `references/<tier>/<skill>-antipatterns.md`.
+The current v1.2.0 release adds capacity estimation to the planning tier, so the architecture step derives its own resource envelope (peak request rate, storage growth, egress, cost, and per-component rearchitecture triggers) instead of borrowing numbers the chains then spend. The v1.1.0 product forms, composable domain guidance, progressive disclosure, deterministic and live-harness evaluations, official Agent Skills validation, current OWASP Top 10:2025 routing, and serialized public activation gate all remain. The 1.0 artifact contract remains stable. Every named failure mode from the eleven source skills remains available under `references/<tier>/<skill>-antipatterns.md`.
 
 The eleven-skill suite at [hannsxpeter/ready-suite](https://github.com/hannsxpeter/ready-suite) remains available and supported for users who prefer the multi-repo footprint.
 

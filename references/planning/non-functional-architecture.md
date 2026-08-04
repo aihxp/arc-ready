@@ -1,8 +1,8 @@
 # Non-Functional Architecture
 
-The Step 6 protocol. Latency, throughput, availability, scale horizons, consistency, compliance posture, observability shape, operational posture, and the math check that refuses "scalable" as a claim. Where the PRD's numeric targets become shape decisions with numbers.
+The Step 6 protocol. Latency, capacity estimation, throughput, availability, scale horizons, consistency, compliance posture, observability shape, operational posture, and the math check that refuses "scalable" as a claim. Where the PRD's numeric targets become shape decisions with numbers.
 
-**Scope owned by this file:** the translation from PRD NFRs to architectural commitments. Not the instrumentation (observe-ready), not the deployment (deploy-ready), not the tool picks (stack-ready). The spec, with numbers.
+**Scope owned by this file:** the translation from PRD NFRs to architectural commitments, and the capacity estimate that grounds them in a resource envelope. Not the instrumentation (observe-ready), not the deployment (deploy-ready), not the tool picks (stack-ready). The spec, with numbers.
 
 ## Section 1. The translation job
 
@@ -14,7 +14,7 @@ The ThoughtWorks Tech Radar has held a consistent position since 2018: NFRs stat
 
 **The refusal rule.** If the PRD says "the system must be scalable" and Step 6 writes "the architecture is scalable," both are horoscope-shaped and neither decides anything. The translation is: read the PRD, extract the concrete number (or go back and ask the PM for it), and write the architectural commitment that the number drives. If the PM cannot produce a number, the number goes on the open-questions log with an owner. Not having a number is a decision to flag, not a decision to hide.
 
-**The second-order translation.** The PRD number is a user-visible target (p95 latency, monthly availability). The architectural commitment is component-level (per-component latency budget, per-component availability, per-component capacity). The chain math (Sections 2, 3, 4) is how the user-visible target decomposes into component-level constraints. If the chain does not close (the user-visible p95 is 300ms but the sum of component budgets is 450ms), the architecture is paper-tiger (RESEARCH-2026-04.md section 2.2) and must change: either the shape adjusts (remove a hop, cache, parallelize, precompute) or the target adjusts (negotiate with the PM for 500ms). Do not ship an infeasible chain.
+**The second-order translation.** The PRD number is a user-visible target (p95 latency, monthly availability). The architectural commitment is component-level (per-component latency budget, per-component availability, per-component capacity). The chain math (Sections 2, 4, 5) is how the user-visible target decomposes into component-level constraints. If the chain does not close (the user-visible p95 is 300ms but the sum of component budgets is 450ms), the architecture is paper-tiger (RESEARCH-2026-04.md section 2.2) and must change: either the shape adjusts (remove a hop, cache, parallelize, precompute) or the target adjusts (negotiate with the PM for 500ms). Do not ship an infeasible chain.
 
 ## Section 2. The latency chain
 
@@ -66,7 +66,78 @@ Budgets break in predictable ways:
 
 For every user-visible flow with a latency target, name the hop that is most likely to blow the budget under stress, and the mitigation. "The payment-gateway hop is the budget's dominant variance contributor; if Stripe p99 exceeds 300ms, the checkout latency SLO cannot be met. Mitigation: async order placement with status polling, cache recent pricing, and have a circuit-breaker fallback to retry-offline mode."
 
-## Section 3. The throughput chain
+## Section 3. Capacity estimation
+
+Every chain here spends numbers it does not produce: the latency budget's load level, Section 11's projected load, Section 5's affordable redundancy. This section produces that envelope; it does not add a fourth chain.
+
+**Provenance.** Every number carries one of four labels. **Measured:** this system's telemetry, with window and statistic. **Vendor-published:** docs, a benchmark, or a contract. **Derived:** computed from labeled numbers. **Assumed:** a human's pick, with owner and review date. **A derived number takes the weakest label among its inputs.**
+
+### The derivation ladder
+
+On the B2B SaaS order-placement example:
+
+1. **Population.** 2,000 tenants at 40 seats: 80,000 registered. Assumed; owner VP Sales, review month 3.
+2. **Active seats.** 30% active on a business day (measured; beta 29%): 24,000, assumed because the 80,000 is, as is every rung below.
+3. **Concurrency.** 50 minutes in-app inside a 10-hour window: 24,000 x (50 / 600) = 2,000 concurrent seats.
+4. **Average rate.** 5 requests per minute per in-session seat: 2,000 x 5 / 60 = 167 RPS in-window average.
+5. **Peak rate.** Peak-to-average 5x, measured on the beta diurnal curve: 833 RPS, 10,000 concurrent seats at peak. That is Section 4's opening 833: the PRD's "10,000 concurrent users" read as sessions held, sitting below Section 4's 1,700-6,700 RPS in-flight reading. Section 4's 2-5x burst is not compounded here: a sub-second burst is absorbed by the table's 3.5x fleet headroom, not sized for.
+6. **Fan-out.** Orders are 3% of requests (measured): 25 orders/sec at peak, each 3 reads, 2 writes, 1 gateway call, 3 events of 1 KB; the other 810 RPS 2 reads each, plus a session-cache read per request. About 1,700 read QPS, 50 write TPS, 830 cache ops/sec, 25 gateway calls/sec, 75 events/sec at 75 KB/s.
+7. **Instance count.** Little's Law (Section 4) on the **mean**, not Section 2's 210ms p95 sum: at the measured 120ms mean, 833 x 0.12 = 100 in-flight. At an assumed 60 in-flight per instance, 500 RPS each. Commit 6 instances, two per AZ across three AZs: one AZ loss leaves 2,000 RPS.
+
+**Independent peak factors compound at one real moment; non-co-occurring ones do not.** 167 x 3 (diurnal) x 1.7 (Monday) = 850 RPS is one moment, and is where rung 5's 5x came from; a nightly batch and a 09:00 herd are not. Quarter-end is a business day too: 167 x 3 x 1.7 x 2 = 1,700. **833 RPS routine sizes the steady fleet, 1,700 the maximum.**
+
+### Storage, egress, and cost
+
+A 36,000-second business day at 167 RPS is 6.0M requests; 3% orders = 180,000. Per order, 4 KB relational plus 3 events at 1 KB: 0.7 GB relational and 1.3 GB total per business day, x 260 days = 330 GB logical per year. Index +40% = 460 GB, writer plus two replicas 1.4 TB, backups and 30-day PITR one more copy: **about 2 TB at 12 months.** Confirmation PDFs at 250 KB add 11.7 TB per year, outside the OLTP engine.
+
+**Retention is the multiplier estimates omit.** The same 1.3 GB per business day is about 85 GB at 90-day retention (90 calendar days is 65 business days) and 2.3 TB at 7-year audit retention, 27x on identical write traffic: a compliance decision (data-architecture.md Section 5), not a default.
+
+**Egress is metered per GB; ingress is free.** User-facing (167 RPS x 8 KB compressed) 1.0 TB per month at 21.7 business days, PDF downloads 1.0 TB at one download per PDF (assumed, owner product lead; a ratio of 3 triples it), cross-AZ reads (340 read QPS in-window average, one fifth of the 1,700 peak, x 4 KB) 1.1 TB: about 3 TB. **A nightly export re-shipping the full 330 GB order table instead of a delta is 10 TB per month, three times all of them, from a job nobody drew.** Full dump versus change-data-capture is architectural (data-architecture.md Section 6).
+
+**Cost is an output, normalized.** The envelope is **single-digit thousands of dollars per month at list rates, dominated by the database tier.** Across 3.9M orders per month, **a tenth of a cent per order**, orders of magnitude below the gateway fee.
+
+### The horizon rule
+
+**Size for the PRD's 12-month ceiling with stated headroom.** Not launch day: sizing for 2,000 registered seats, 4 RPS in-window average here, needs rearchitecting in month four. Not a hypothetical 100x (RESEARCH-2026-04.md sections 1.6 and 2.2). Target 3-5x headroom at the horizon peak on components that size continuously; below 2x leaves no room for an estimate wrong by a factor of two. On indivisible components the trigger matters, not the multiple: the utilization at which rearchitecture planning opens, early enough to cover the fix. **Beyond the horizon, name a trigger, not a design.**
+
+**Autoscaling is not a capacity estimate.** It moves instances, not ceilings: nothing for the single writer, the connection pool, or a contracted rate limit. It has a response time: a 90-180 second scale-out arrives after a 10-second herd drained the queue with 503s. Autoscaling is a cost optimization layered on this estimate, never a substitute for it.
+
+### Hygiene and the assumption log
+
+- **One significant figure in, at most two out,** with a unit and a time base.
+- **Derive it twice,** top-down and bottom-up: 25 orders/sec at 4 KB is 3.6 GB per business day, five times the storage line's 0.7 GB, the peak-to-average ratio.
+- **Every assumed number enters the ARCH.md assumption log** with value, owner, review date, and **what changes if it is wrong by 3x**. Rerun it on the first month of telemetry; a component past its trigger is an ADR supersession (adr-discipline.md).
+
+### The refusals
+
+- **The envelope built for the fundraising slide.** The deck says 10 million users; the PRD says 2,000 tenants (RESEARCH-2026-04.md section 1.4).
+- **The unit-less estimate.** "We need about 500." Of what, per what, at which percentile.
+- **The estimate with no assumption log.** Unfalsifiable, therefore permanent.
+- **Sizing to the average.** Correct at 3 a.m., saturated at 10 a.m.
+
+### Where the ARCH.md commits
+
+This table is Section 6's per-component ceiling line, collected and given a projected-load column. One table, not two.
+
+| Component | Peak, 12 mo | Ceiling | Headroom | Trigger |
+|---|---|---|---|---|
+| API tier, 6 (max 12) | 833 RPS, 1,700 quarter-end | 500 RPS/instance (assumed): 3,000 / 6,000 | 3.5x, assumed | 40 in-flight/instance, 10 min |
+| Relational writer | 50 write TPS | 8,000 TPS (Section 6) | over 100x | 4,000 sustained |
+| Read replicas (2) | 1,700 read QPS | 16,000 QPS (Section 6) | 9x | 8,000 sustained |
+| Cache tier | 830 ops/sec | 100,000 ops/sec (Section 6) | over 100x | 30,000 ops/sec |
+| Event bus | 75 events/sec, 75 KB/s | 1 MB/s/partition (Section 6, conservative end) | 13x | 500 KB/s sustained |
+| Payment gateway | 25 calls/sec, 50 quarter-end | 50 calls/sec (contracted) | 2x, 1x seasonal | 30 calls/sec; raise contract month 9 |
+| Primary storage | 2 TB all copies | 4 TB provisioned | 2x | 3 TB used |
+| Object store (PDFs) | 12 TB | 20 TB provisioned | 1.7x | 15 TB; lifecycle review |
+| Egress | 3 TB/month | cost, not capacity | n/a | 6 TB/month; CDN review |
+
+Any row under 2x is Section 11's test; the gateway and object-store rows carry their mitigations in the trigger column.
+
+**The boundary.** architecture-ready commits the envelope and trigger; stack-ready picks instance classes; deploy-ready wires the autoscaling policy from this table; observe-ready instruments utilization and alerts on the trigger.
+
+**When to skip.** If system-shape.md Section 1's load-bearing check refused a full architecture, this section is one line: "under 10 RPS peak, under 10 GB at 12 months, one instance, no growth trigger."
+
+## Section 4. The throughput chain
 
 ### RPS and EPS calculations
 
@@ -80,7 +151,7 @@ The PRD says "scale to 10,000 concurrent users." That number is not a throughput
 
 For each component on the critical path, state its capacity. Capacity is a function of the engine (stack-ready's pick), the hardware (stack-ready's pick), and the workload shape (architecture-ready's commitment).
 
-Concrete rough numbers (see Section 5 for more detail):
+Concrete rough numbers (see Section 6 for more detail):
 
 - **Single Postgres writer.** 5-10k TPS on standard hardware for simple transactional workloads; lower for complex transactions, higher with connection pooling and careful schema.
 - **Postgres read replicas.** Each replica can serve reads at roughly the same TPS as the writer; scale horizontally for reads.
@@ -121,7 +192,7 @@ L = lambda * W. **Concurrency equals arrival rate times average latency.** If th
 
 **Applied to the budget.** If the PRD says 10,000 concurrent users and the typical request is 300ms, lambda = L / W = 10000 / 0.3 = 33,333 RPS if every user is always active. Users are not always active; adjust by active-fraction (maybe 5-20%): 1,700-6,700 RPS actual. The architecture sizes for this.
 
-## Section 4. The availability chain
+## Section 5. The availability chain
 
 ### The nines
 
@@ -171,7 +242,7 @@ But again, if both replicas share an AZ, the independent-failure assumption fail
 
 ### The availability-chain ADR
 
-At the end of Section 4, the ARCH.md states:
+At the end of Section 5, the ARCH.md states:
 
 - The per-component availability target.
 - The end-to-end availability target (the PRD's NFR).
@@ -180,7 +251,7 @@ At the end of Section 4, the ARCH.md states:
 
 If the math does not close, the architecture either adds redundancy (more cost) or the PRD target is adjusted (negotiate with PM). Do not ship an infeasible availability chain.
 
-## Section 5. Scale horizons
+## Section 6. Scale horizons
 
 Every component has a capacity ceiling. Name the concrete number so the team knows when rearchitecture becomes necessary.
 
@@ -231,7 +302,7 @@ Ceiling signals: WAL-write saturation, connection-pool exhaustion, lock contenti
 
 Per load-bearing component, state the ceiling: "Postgres writer ceiling at 8k TPS on the chosen instance class. At 12-month projected load of 2k TPS, we have 4x headroom. Trigger for rearchitecture planning: 4k sustained TPS." This gives the team a forward-looking signal; the architecture plans for the horizon, not just today.
 
-## Section 6. Consistency and partitioning
+## Section 7. Consistency and partitioning
 
 The formal grounding for consistency and partitioning decisions.
 
@@ -269,7 +340,7 @@ Per entity group, state:
 - **Partition tolerance.** Single-region (no partition concern), multi-AZ (limited partition concern), multi-region (full partition concern).
 - **Reconciliation strategy** (for eventually-consistent entity groups): last-write-wins, vector clocks, CRDT, application-defined.
 
-## Section 7. Security, privacy, compliance as shape constraints
+## Section 8. Security, privacy, compliance as shape constraints
 
 Compliance is a filter on the architecture, not a sticker on top.
 
@@ -312,7 +383,7 @@ The ARCH.md states, per regulated data class:
 - Where the in-scope components run (region, cloud zone, compliance tier).
 - What the audit, encryption, and access-control commitments are at the shape level (not the tool level; stack-ready picks).
 
-## Section 8. Observability shape
+## Section 9. Observability shape
 
 **What architecture-ready commits to.** The shape of observability: what signals must propagate across boundaries, what audit events must be captured, where they go.
 
@@ -351,7 +422,7 @@ Every service boundary is an observability boundary. At the boundary:
 
 observe-ready reads these commitments and wires the tool. If the architecture does not commit to trace-ID propagation, observe-ready cannot produce coherent end-to-end traces. If the architecture does not commit to audit-event emission points, observe-ready cannot produce the audit-log feature the PRD asked for.
 
-## Section 9. Operational posture
+## Section 10. Operational posture
 
 The PRD's operational NFRs constrain the architecture.
 
@@ -399,7 +470,7 @@ The PRD states both; the architecture must support both.
 
 The architecture commits; the stack-ready skill picks the engines that support the commitment; the deploy-ready skill wires the restore pipeline.
 
-## Section 10. The math check
+## Section 11. The math check
 
 At the end of Step 6, run the chains and compute. This is a gate, not a formality.
 

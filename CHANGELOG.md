@@ -4,6 +4,31 @@ All notable changes to arc-ready are documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project follows semantic versioning per `MAINTAINING.md`.
 
+## [1.2.0] - 2026-08-03
+
+Minor release. Adds capacity estimation to the planning tier so the architecture step derives the resource envelope its own chains spend, instead of borrowing the PRD's most optimistic sentence. Canonical artifact paths, the four-mode workflow shape, and the three-chain math-check gate are unchanged.
+
+### Added
+
+- `references/planning/non-functional-architecture.md` gains Section 3, "Capacity estimation". It owns the derivation ladder from a traffic model to a resource envelope (population, active seats, concurrency, average rate, peak rate, fan-out, instance count), the rule that independent peak factors compound at one real moment while non-co-occurring ones do not, storage growth with retention as the multiplier estimates omit, egress and cost as outputs rather than afterthoughts, the 12-month horizon rule with per-component rearchitecture triggers, provenance labels on every input (measured, vendor-published, derived, assumed) with a derived number inheriting its weakest input's label, the assumption log, and a per-component capacity-commitment table. The section works the file's existing B2B SaaS order-placement example end to end.
+- An explicit refusal that autoscaling is a cost optimization layered on a capacity estimate and never a substitute for one, alongside refusals of the fundraising-slide envelope, the unit-less estimate, the estimate with no assumption log, and sizing to the average.
+
+### Changed
+
+- `references/planning/non-functional-architecture.md` renumbers its former Sections 3 through 10 to 4 through 11 to seat the new section between the latency chain and the throughput chain. The file's three internal self-references, its opening topic list, and its scope statement are updated; every cross-file citation is unchanged.
+- `references/planning/integration-architecture.md` updates its availability-chain citation from Section 4 to Section 5 to match the renumbering. This was the only external citation of a section number in the edited file.
+- `references/planning/planning-workflow.md` Step 1.2 sub-step 5 names capacity estimates alongside performance budgets, scale thresholds, and availability targets.
+
+### Validated
+
+- Repository lint (15 checks), 12 operational dogfood smoke tests, 14 deterministic evaluations, and the pinned official Agent Skills validator.
+- Every derivation in the new section recomputed and reconciled against the numbers already in the file: the 833 RPS peak against the throughput chain's opening figure, the 210ms latency budget against the 300ms p95 target, and every headroom multiple against the per-component ceilings in Section 6.
+- Zero net-new inherited Unicode or emoji counts.
+
+### Why a minor, not a patch or major
+
+The release adds a sub-step's worth of new planning-tier content, which is more than a bug fix, cross-reference correction, or typo. It introduces no new failure-mode pattern the source ready-suite did not enforce, breaks no canonical artifact path, and leaves the math-check gate at three chains, so a major release is not warranted.
+
 ## [1.1.0] - 2026-07-13
 
 Minor release. Broadens arc-ready from a web-dashboard-biased workflow into an explicit multi-form software delivery system, adds reproducible evaluation evidence, and aligns the skill with the current Agent Skills specification. Canonical artifact paths remain unchanged.
