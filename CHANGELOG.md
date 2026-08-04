@@ -6,7 +6,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [1.2.1] - 2026-08-04
 
-Patch release. Rewrites `README.md` for a general audience and adds a project banner. No workflow capability, no reference content, and no artifact-contract change.
+Patch release. Rewrites `README.md` for a general audience, adds a project banner, and fixes the Unicode baseline check so a tracked binary asset does not produce a platform-dependent verdict. No workflow capability, no reference content, and no artifact-contract change.
 
 ### Added
 
@@ -14,6 +14,10 @@ Patch release. Rewrites `README.md` for a general audience and adds a project ba
 - A "Common questions" section answering what a reader who is not an engineer actually asks first: whether they need to code, whether the skill writes code or only documents, what a PRD is, whether an in-progress project is too late, whether this replaces developers, and where project data is written.
 - A collapsible glossary translating PRD, architecture, stack, repo, CI/CD, rollback, canary, SLO, runbook, OWASP Top 10, hardening, and agent memory into plain sentences.
 - A "What it refuses to do" section stating the guardrails as product behavior: no decision-free architecture diagrams, no stack preference passed off as architecture, no features backed by fake data, no unactionable alerts, no unchecked launch claims, no security review closed over unresolved critical findings, and no public activation without a fresh pre-publication record.
+
+### Fixed
+
+- `unicode-baseline` in `scripts/lint.sh` and `scripts/update-unicode-baseline.sh` now skip binary files. A tracked image contains byte sequences that decode as forbidden punctuation, and perl builds disagree about whether to count them or abort on the malformed UTF-8, so the first tracked binary asset passed the check on macOS and failed it in CI with `assets/hero.png policy=15/0`. Baseline entries cover authored text only; the recorded counts are unchanged.
 
 ### Changed
 
@@ -28,7 +32,7 @@ Patch release. Rewrites `README.md` for a general audience and adds a project ba
 
 ### Why a patch, not a minor
 
-The release changes documentation only. `SKILL.md` gains no routing, no sub-step, and no reference; the canonical artifact paths, the four-mode workflow shape, and every named failure mode are untouched. Version surfaces are bumped so `metadata.version`, the top CHANGELOG entry, the plugin manifest, and the artifact contract stay in agreement.
+The release changes documentation and lint behavior only, both of which `MAINTAINING.md` names as patch-level. `SKILL.md` gains no routing, no sub-step, and no reference; the canonical artifact paths, the four-mode workflow shape, and every named failure mode are untouched. Version surfaces are bumped so `metadata.version`, the top CHANGELOG entry, the plugin manifest, and the artifact contract stay in agreement.
 
 ## [1.2.0] - 2026-08-03
 
