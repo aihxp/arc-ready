@@ -4,6 +4,36 @@ All notable changes to arc-ready are documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project follows semantic versioning per `MAINTAINING.md`.
 
+## [1.2.1] - 2026-08-04
+
+Patch release. Rewrites `README.md` for a general audience, adds a project banner, and fixes the Unicode baseline check so a tracked binary asset does not produce a platform-dependent verdict. No workflow capability, no reference content, and no artifact-contract change.
+
+### Added
+
+- `assets/hero.png`, a banner rendered at the top of `README.md`.
+- A "Common questions" section answering what a reader who is not an engineer actually asks first: whether they need to code, whether the skill writes code or only documents, what a PRD is, whether an in-progress project is too late, whether this replaces developers, and where project data is written.
+- A collapsible glossary translating PRD, architecture, stack, repo, CI/CD, rollback, canary, SLO, runbook, OWASP Top 10, hardening, and agent memory into plain sentences.
+- A "What it refuses to do" section stating the guardrails as product behavior: no decision-free architecture diagrams, no stack preference passed off as architecture, no features backed by fake data, no unactionable alerts, no unchecked launch claims, no security review closed over unresolved critical findings, and no public activation without a fresh pre-publication record.
+
+### Fixed
+
+- `unicode-baseline` in `scripts/lint.sh` and `scripts/update-unicode-baseline.sh` now skip binary files. A tracked image contains byte sequences that decode as forbidden punctuation, and perl builds disagree about whether to count them or abort on the malformed UTF-8, so the first tracked binary asset passed the check on macOS and failed it in CI with `assets/hero.png policy=15/0`. Baseline entries cover authored text only; the recorded counts are unchanged.
+
+### Changed
+
+- `README.md` leads with the problem arc-ready solves rather than with tier vocabulary. The tier-numbered feature list is replaced by a table of what each arc step answers and what it leaves behind, and the four modes are named in plain language.
+- The trigger-phrase surface and the repository layout tree move into collapsible sections. Both are unchanged in content; they no longer dominate the first read.
+- The artifact map keeps every canonical `.<tier>-ready/` path unchanged and gains plain-language step names in the first column.
+
+### Validated
+
+- Repository lint (15 checks), 12 operational dogfood smoke tests, 14 deterministic evaluations, and the pinned official Agent Skills validator.
+- `README.md` is ASCII-only, so `unicode-clean` and the inherited-Unicode baseline are both unaffected.
+
+### Why a patch, not a minor
+
+The release changes documentation and lint behavior only, both of which `MAINTAINING.md` names as patch-level. `SKILL.md` gains no routing, no sub-step, and no reference; the canonical artifact paths, the four-mode workflow shape, and every named failure mode are untouched. Version surfaces are bumped so `metadata.version`, the top CHANGELOG entry, the plugin manifest, and the artifact contract stay in agreement.
+
 ## [1.2.0] - 2026-08-03
 
 Minor release. Adds capacity estimation to the planning tier so the architecture step derives the resource envelope its own chains spend, instead of borrowing the PRD's most optimistic sentence. Canonical artifact paths, the four-mode workflow shape, and the three-chain math-check gate are unchanged.
@@ -278,6 +308,7 @@ The discipline of arc-ready is the discipline the eleven-skill suite produced. S
 - Compatible with: claude-code, codex, cursor, windsurf, antigravity, pi, openclaw, any-agentskills-compatible-harness.
 - Artifact paths (`.prd-ready/PRD.md`, `.architecture-ready/ARCH.md`, etc.) are unchanged from the eleven-skill suite. The hannsxpeter/ready-suite-example dogfood verifies cleanly against arc-ready's tier dispatch.
 
+[1.2.1]: https://github.com/hannsxpeter/arc-ready/releases/tag/v1.2.1
 [1.2.0]: https://github.com/hannsxpeter/arc-ready/releases/tag/v1.2.0
 [1.1.0]: https://github.com/hannsxpeter/arc-ready/releases/tag/v1.1.0
 [1.0.2]: https://github.com/hannsxpeter/arc-ready/releases/tag/v1.0.2

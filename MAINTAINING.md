@@ -82,7 +82,7 @@ bash scripts/lint.sh tag-release-parity --verbose
 | Check | What it proves |
 |---|---|
 | `unicode-clean` | Load-bearing authored files contain no forbidden dash, arrow, or box characters. |
-| `unicode-baseline` | Existing inherited punctuation and emoji counts did not increase in any tracked file. |
+| `unicode-baseline` | Existing inherited punctuation and emoji counts did not increase in any tracked text file. Binary assets are skipped: they carry no authored punctuation, and decoding them as UTF-8 is not portable across perl builds. |
 | `frontmatter-version` | `metadata.version` matches the top CHANGELOG entry. |
 | `skill-version-body` | Every embedded progress-schema version matches `metadata.version`. |
 | `compatible-with` | Compatibility metadata names the supported standards-level clients. |
@@ -101,6 +101,8 @@ bash scripts/lint.sh tag-release-parity --verbose
 ## Inherited Unicode policy
 
 Load-bearing authored surfaces must remain clean. Some references inherited punctuation and emoji from the source suite. `config/unicode-baseline.txt` records per-file counts so CI rejects increases without rewriting faithful copies.
+
+Both the check and the regeneration script skip binary files. A tracked image contains byte sequences that decode as forbidden punctuation, and perl builds disagree about whether to count them or abort, so scanning binaries produced a check that passed on macOS and failed in CI. Baseline entries are for authored text only.
 
 After a reviewed mechanical split or move, regenerate and inspect the baseline:
 

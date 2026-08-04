@@ -17,6 +17,9 @@ cd "$REPO_DIR"
 
 for file in $(git ls-files --cached --others --exclude-standard | sort); do
   [ -f "$file" ] || continue
+  # Skip binary assets for the same reason scripts/lint.sh does: decoding them
+  # as UTF-8 is not portable across perl builds.
+  perl -e 'exit((-B $ARGV[0]) ? 0 : 1)' "$file" 2>/dev/null && continue
   policy=$(perl -CSD -ne 'while (/[\x{2010}-\x{2015}\x{2190}-\x{21FF}\x{2500}-\x{257F}]/g) {$n++} END {print $n || 0}' "$file" 2>/dev/null || printf '0')
   emoji=$(perl -CSD -ne 'while (/\p{Extended_Pictographic}/g) {$n++} END {print $n || 0}' "$file" 2>/dev/null || printf '0')
   if [ "$policy" -gt 0 ] || [ "$emoji" -gt 0 ]; then

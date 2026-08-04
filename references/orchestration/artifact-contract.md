@@ -84,7 +84,7 @@ Each tier's `.<tier>-ready/STATE.md` is the durable record of where the tier is 
 ```markdown
 # arc-ready PROGRESS
 
-## Skill version: 1.2.0
+## Skill version: 1.2.1
 ## Last update: <ISO-8601 timestamp>
 ## Mode: A | B | C | D
 ## Harness: claude-code | codex | cursor | windsurf | antigravity | pi | openclaw | generic

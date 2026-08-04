@@ -116,6 +116,10 @@ check_unicode_baseline() {
   local_fail=0
   for file in $(git ls-files --cached --others --exclude-standard | sort); do
     [ -f "$file" ] || continue
+    # Binary assets carry no authored punctuation. Decoding them as UTF-8 is
+    # also not portable: some perl builds abort on the malformed sequences and
+    # others count them, so a tracked image would pass locally and fail in CI.
+    perl -e 'exit((-B $ARGV[0]) ? 0 : 1)' "$file" 2>/dev/null && continue
     policy=$(perl -CSD -ne 'while (/[\x{2010}-\x{2015}\x{2190}-\x{21FF}\x{2500}-\x{257F}]/g) {$n++} END {print $n || 0}' "$file" 2>/dev/null || printf '0')
     emoji=$(perl -CSD -ne 'while (/\p{Extended_Pictographic}/g) {$n++} END {print $n || 0}' "$file" 2>/dev/null || printf '0')
     allowed_line=$(awk -F'|' -v path="$file" '$1 == path {print; exit}' "$baseline")
