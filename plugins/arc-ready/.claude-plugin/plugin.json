@@ -1,7 +1,7 @@
 {
   "name": "arc-ready",
   "description": "Plan, build, ship, and audit software across the full idea-to-launch arc. Routes greenfield, brownfield, audit, and multi-repo work by product form, product archetype, industry, and regulatory overlay while preserving stable artifacts, Pillars agent memory, disk-backed gates, and a fresh hardening check before public activation.",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "author": { "name": "hannsxpeter", "url": "https://github.com/hannsxpeter" },
   "homepage": "https://github.com/hannsxpeter/arc-ready",
   "repository": "https://github.com/hannsxpeter/arc-ready",
