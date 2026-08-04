@@ -5,7 +5,7 @@
 Report security vulnerabilities **privately**, not via public issues or pull requests. Two channels, in order of preference:
 
 1. **GitHub Security Advisories** at the repository's `Security` tab. Click "Report a vulnerability." This is the canonical path; the report goes directly to the maintainer, stays private until disclosure, and produces a CVE if applicable.
-2. **Email** to `hprincivil@gmail.com` with subject line `SECURITY: arc-ready` and a clear description of the issue, reproduction steps, and any proposed mitigation.
+2. **Email** to `hannsxpeter@gmail.com` with subject line `SECURITY: arc-ready` and a clear description of the issue, reproduction steps, and any proposed mitigation.
 
 Expect an acknowledgment within **3 business days**. Disclosure timelines depend on severity:
 
