@@ -39,7 +39,7 @@ Sub-steps:
 2. **Component breakdown.** Bounded contexts, components, services. Each component has a name, a purpose, an upstream dependency list, and an owner. Load `references/planning/component-breakdown.md`.
 3. **Data architecture.** Data stores, ownership, consistency requirements, partition strategy. Load `references/planning/data-architecture.md`.
 4. **Integration architecture.** API styles (REST/GraphQL/gRPC/messaging), contract-versioning policy, error-handling shape. Load `references/planning/integration-architecture.md`.
-5. **Non-functional architecture.** Performance budgets, scale thresholds, availability targets. Numbers, not adjectives. Load `references/planning/non-functional-architecture.md`.
+5. **Non-functional architecture.** Performance budgets, capacity estimates, scale thresholds, availability targets. Numbers, not adjectives. Load `references/planning/non-functional-architecture.md`.
 6. **Trust boundaries.** Where authentication, authorization, encryption are enforced. Each boundary mapped to specific code/config that implements it. Load `references/planning/trust-boundaries.md`.
 7. **ADRs.** Each load-bearing decision is an ADR with context, decision, consequences, flip points. Load `references/planning/adr-discipline.md`.
 8. **Diagrams.** C4 (Context, Container, Component, Code) or arc42. Diagrams support decisions; they do not replace them. Load `references/planning/diagrams.md`.

@@ -14,7 +14,7 @@ The caller sends a request and blocks waiting for the callee's response. If the 
 
 **Wins.** Failure is visible at the point of failure; debugging is local; the caller knows whether the operation succeeded. The semantics are the same as a local function call, which is a simpler mental model. End-to-end latency is the sum of the hops, which is predictable and easy to budget.
 
-**Loses.** Every hop is a point of cascading failure; a slow callee makes a slow caller, which makes a slow caller's caller. Availability is multiplicative across sync chains (three services at 99.9% each give 99.7% end-to-end, minus correlated-failure slack; see non-functional-architecture.md Section 4). Tight coupling: upgrades, deploys, and scaling must be coordinated.
+**Loses.** Every hop is a point of cascading failure; a slow callee makes a slow caller, which makes a slow caller's caller. Availability is multiplicative across sync chains (three services at 99.9% each give 99.7% end-to-end, minus correlated-failure slack; see non-functional-architecture.md Section 5). Tight coupling: upgrades, deploys, and scaling must be coordinated.
 
 ### What async means
 
